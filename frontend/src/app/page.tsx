@@ -78,12 +78,12 @@ function Nav({ online }: { online: boolean | null }) {
       <div className="hidden md:flex items-center gap-8 font-body text-[15px] text-[#A0A0A5]">
         <button onClick={() => scrollTo('about')}     className="hover:text-white transition-colors cursor-pointer">About</button>
         <button onClick={() => scrollTo('technology')} className="hover:text-white transition-colors cursor-pointer">Technology</button>
-        <a href="http://localhost:8000/docs" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">API Docs</a>
+        <a href="https://aryan012234-nanomind-api.hf.space/docs" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">API Docs</a>
       </div>
 
       {/* CTA */}
       <div className="flex items-center gap-2">
-        <a href="https://github.com/kumardhruv88" target="_blank" rel="noopener noreferrer" className="btn-secondary hidden sm:inline-block">GitHub</a>
+        <a href="https://github.com/kumardhruv88/nanomind" target="_blank" rel="noopener noreferrer" className="btn-secondary hidden sm:inline-block">GitHub</a>
         <button className="btn-primary" onClick={() => scrollTo('console')}>Try it</button>
       </div>
     </nav>
@@ -668,7 +668,7 @@ function Footer() {
           <button onClick={() => scrollTo('about')}      className="hover:text-white transition-colors">About</button>
           <button onClick={() => scrollTo('technology')} className="hover:text-white transition-colors">Technology</button>
           <button onClick={() => scrollTo('console')}    className="hover:text-white transition-colors">Console</button>
-          <a href="https://github.com/kumardhruv88" className="hover:text-white transition-colors">GitHub</a>
+          <a href="https://github.com/kumardhruv88/nanomind" className="hover:text-white transition-colors">GitHub</a>
         </div>
       </div>
     </footer>

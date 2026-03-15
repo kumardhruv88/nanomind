@@ -2,12 +2,12 @@ import type { Metadata } from 'next'
 import '../styles/globals.css'
 
 export const metadata: Metadata = {
-  title: 'DhruvGPT — LLM Trained From Scratch',
+  title: 'NanoMind AI',
   description: 'A 30M parameter GPT model built from scratch by Dhruv Kumar. Pretrained on TinyStories, finetuned on Alpaca.',
   keywords: ['LLM', 'GPT', 'AI', 'Machine Learning', 'Transformer', 'NLP'],
   authors: [{ name: 'Dhruv Kumar' }],
   openGraph: {
-    title: 'DhruvGPT — LLM Trained From Scratch',
+    title: 'NanoMind AI',
     description: 'A 30M parameter GPT model built from scratch. Pretrained + SFT finetuned.',
     type: 'website',
   },

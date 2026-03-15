@@ -131,12 +131,12 @@ body {
   100% { border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; transform: rotate(0deg)   scale(1);    }
 }
 
-/* Container — sits below the hero text, no overflow clipping */
+/* Container — sits behind the hero text */
 .orb-container {
   position: absolute;
-  bottom: -60px;          
+  top: 50%;          
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   width: clamp(300px, 50vw, 550px);
   height: clamp(300px, 50vw, 550px);
   z-index: 8;
