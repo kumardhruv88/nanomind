@@ -1,6 +1,8 @@
 import axios from 'axios'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || (process.env.NODE_ENV === 'production' ? 'https://aryan012234-nanomind-api.hf.space' : 'http://localhost:8000')
+// Force the production URL when not on localhost to bypass any faulty Vercel environment variables
+const isLocal = typeof window !== 'undefined' ? window.location.hostname === 'localhost' : process.env.NODE_ENV === 'development'
+const API_URL = isLocal ? 'http://localhost:8000' : 'https://aryan012234-nanomind-api.hf.space'
 
 export const api = axios.create({
   baseURL: API_URL,
