@@ -1,271 +1,221 @@
 <div align="center">
 
-# DhruvGPT
+# 🧠 NanoMind AI
 
-### A 30M Parameter GPT Trained From Scratch
+### A 30M Parameter GPT Architecture Built From Scratch
 
 [![Python](https://img.shields.io/badge/Python_3.10+-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)](https://python.org)
 [![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Next.js](https://img.shields.io/badge/Next.js_14-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org)
+[![HuggingFace](https://img.shields.io/badge/HuggingFace-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)](https://huggingface.co)
 [![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com)
 
 *Transformer architecture built from scratch · Pretrained on TinyStories · Finetuned on Alpaca*
+
+[**🌍 View Live Demo**](https://nanomind.vercel.app/) • [**📦 Model Weights**](https://huggingface.co/aryan012234/nanomind-30m) • [**⚙️ API Space**](https://huggingface.co/spaces/aryan012234/nanomind-api)
 
 </div>
 
 ---
 
-## What Is This?
+## 🎯 Project Overview
 
-DhruvGPT is a complete end-to-end LLM project — from building the transformer architecture in raw PyTorch, to training on Kaggle GPUs, to deploying a production web interface and public API.
+NanoMind AI is a complete end-to-end Large Language Model project. Rather than fine-tuning an existing architecture like Llama or wrapping an external API, this project implements a complete transformer decoder architecture in raw PyTorch (`nn.Linear`, `nn.LayerNorm`, etc.).
 
-**Not fine-tuning a Llama. Not wrapping GPT-4. Built from `nn.Linear` up.**
+The system encompasses the entire ML lifecycle:
+1. **Architecture Design**: Custom GPT decoder implementation
+2. **Pretraining**: Unsupervised learning on TinyStories (50M tokens)
+3. **Fine-Tuning**: Supervised Fine-Tuning (SFT) on the Alpaca dataset
+4. **API Development**: High-performance FastAPI backend
+5. **UI & Deployment**: Next.js frontend integrated with Hugging Face cloud infrastructure
 
-```
-Token Embeddings → 6x Transformer Blocks → LM Head → Next Token
+---
+
+## 🏗️ System Architecture
+
+The following diagram illustrates the deployment and data flow architecture of the NanoMind AI platform:
+
+```mermaid
+graph LR
+    %% Entities
+    User((User))
+    
+    %% Frontend Group
+    subgraph Frontend["Frontend Platform (Vercel)"]
+        UI[Next.js App UI]
+        API_Route[API Routes / Edge]
+    end
+    
+    %% Backend Group
+    subgraph Backend["Backend Platform (Hugging Face Spaces)"]
+        FastAPI_Server[FastAPI Server: Port 7860]
+        Model_Engine[PyTorch Inference Engine]
+    end
+    
+    %% Storage Group
+    subgraph Storage["Model Storage (Hugging Face Hub)"]
+        SFT_Weights[(sft_model.pt)]
+        Base_Weights[(best_model.pt)]
+    end
+    
+    %% Connections
+    User -->|HTTP Requests| UI
+    UI <--> API_Route
+    API_Route <-->|CORS / REST POST| FastAPI_Server
+    FastAPI_Server <--> Model_Engine
+    
+    %% Startup Connection
+    Backend -.-|Startup Download| Storage
+
+    %% Styling
+    classDef user fill:#f9f9f9,stroke:#333,stroke-width:2px;
+    classDef ui fill:#000,color:#fff,stroke:#333;
+    classDef backend fill:#FFD21E,color:#000,stroke:#333;
+    classDef storage fill:#2A66D2,color:#fff,stroke:#333;
+
+    class User user;
+    class UI,API_Route ui;
+    class FastAPI_Server,Model_Engine backend;
+    class SFT_Weights,Base_Weights storage;
 ```
 
 ---
 
-## Training Summary
+## 🧠 Model Internals
 
-| Phase | Details | Result |
+### Architecture Details
+The model follows a classic GPT (decoder-only) architecture with 29.9M parameters.
+
+```mermaid
+classDiagram
+    class TransformerBlock {
+        +LayerNorm ln1
+        +LayerNorm ln2
+        +CausalSelfAttention attn
+        +FeedForward ff
+        +forward(x)
+    }
+    class CausalSelfAttention {
+        +Linear c_attn
+        +Linear c_proj
+        +register_buffer mask
+        +forward(x)
+    }
+    class FeedForward {
+        +Sequential net
+        +forward(x)
+    }
+    class GPT {
+        +Embedding token_emb
+        +Embedding pos_emb
+        +Sequential blocks
+        +forward(idx, targets)
+    }
+    TransformerBlock "6" *-- GPT : contains
+    CausalSelfAttention "1" *-- TransformerBlock : contains
+    FeedForward "1" *-- TransformerBlock : contains
+```
+
+| Parameter | Value | Description |
 |---|---|---|
-| **Architecture** | GPT decoder, 6L/6H/384D, weight tying | 30M params |
-| **Tokenizer** | GPT-2 BPE via tiktoken | 50,257 vocab |
-| **Pretraining** | TinyStories 50M tokens, 50K steps, Kaggle T4 | val_loss 2.11 |
-| **SFT Finetune** | Alpaca 52K, 3 epochs, lr=5e-5 | val_loss 1.93 |
-| **Hardware** | Kaggle Tesla T4 (15.6 GB VRAM) | ~6 hrs pretrain |
+| **Parameters** | 29.9M | Total learnable weights |
+| **Layers (L)** | 6 | Transformer blocks |
+| **Heads (H)** | 6 | Multi-head attention heads |
+| **Embedding (D)** | 384 | Embedding dimension |
+| **Context Size** | 128 | Maximum sequence length |
+| **Vocabulary** | 50,257| GPT-2 BPE via TikToken |
+| **Weight Tying**| Yes | Input/Output embeddings tied |
 
 ---
 
-## Project Structure
+## ☁️ Deployment Guide
 
-```
-dhruv-llm/
-├── backend/
-│   ├── main.py              # FastAPI app — model loading + all routes
-│   ├── requirements.txt     # Python dependencies
-│   ├── Procfile             # Railway/Render deployment
-│   └── railway.toml         # Railway config
-│
-├── frontend/
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── layout.tsx   # Root layout
-│   │   │   └── page.tsx     # Full UI — all components
-│   │   ├── lib/
-│   │   │   └── api.ts       # Typed API client
-│   │   └── styles/
-│   │       └── globals.css  # Design system + animations
-│   ├── package.json
-│   ├── tailwind.config.js
-│   └── vercel.json
-│
-├── models/                  ← PUT YOUR .pt FILES HERE
-│   ├── sft_model.pt         # SFT finetuned (primary)
-│   └── best_model.pt        # Pretrained (fallback)
-│
-├── notebooks/               ← PUT YOUR KAGGLE NOTEBOOK HERE
-│   └── training.ipynb
-│
-├── CONTEXT.md               # Full project context for AI assistants
-├── README.md                # This file
-├── .gitignore
-└── start.sh                 # One-command local startup
-```
+NanoMind AI uses a split-infrastructure deployment strategy to maximize performance and minimize cost, separating static front-end serving from heavy GPU/CPU inference.
+
+### 1. Model Weights (Hugging Face Model Hub)
+The compiled PyTorch weights are hosted on the Hugging Face Model Hub.
+- Upload via `huggingface-cli` or via interface.
+- Models are ignored in `.gitignore` to prevent repository bloat.
+
+### 2. API Server (Hugging Face Spaces)
+The FastAPI server is deployed as a Docker Space on Hugging Face.
+- Listens on `0.0.0.0:7860`.
+- Automatically downloads `.pt` files from the Model Hub via the `HF_REPO_ID` environment variable upon container startup.
+- Exposes `POST /generate` and `POST /chat` endpoints.
+
+### 3. Frontend Web App (Vercel)
+The Next.js user interface is deployed on Vercel's Edge Network for global low latency.
+- Connects to the backend via the `NEXT_PUBLIC_API_URL` environment variable.
+- Fully responsive, glassmorphism-inspired UI with cinematic text animations.
 
 ---
 
-## Quick Start
+## 💻 Local Development Setup
 
-### 1. Add Your Model Files
+If you prefer to run the entire stack locally for testing or development:
 
+### 1. Requirements
+Ensure you have Python 3.10+ and Node.js 18+ installed.
+
+### 2. Install Dependencies
 ```bash
-# Copy your downloaded .pt files into models/
-cp ~/Downloads/sft_model.pt   models/
-cp ~/Downloads/best_model.pt  models/
-```
-
-### 2. Start Backend
-
-```bash
+# Terminal 1: Setup Backend
 cd backend
 pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-```
 
-API live at: `http://localhost:8000`
-Swagger docs: `http://localhost:8000/docs`
-
-### 3. Start Frontend
-
-```bash
+# Terminal 2: Setup Frontend
 cd frontend
 npm install
+```
+
+### 3. Fetch Models
+Place your `sft_model.pt` and `best_model.pt` weights directly into the `models/` directory at the project root.
+
+### 4. Start Servers
+```bash
+# Terminal 1: Start PyTorch API
+cd backend
+uvicorn main:app --reload --port 8000
+
+# Terminal 2: Start Next.js App
+cd frontend
 npm run dev
 ```
 
-App live at: `http://localhost:3000`
-
-### Or use the one-liner:
-
-```bash
-chmod +x start.sh && ./start.sh
-```
+Your API is now available at `http://localhost:8000` and the UI at `http://localhost:3000`.
 
 ---
 
-## API Usage
+## ⚡ API Specification
 
-### Text Generation
+The backend server provides a RESTful interface for direct model communication.
 
-```bash
-curl -X POST http://localhost:8000/generate \
-  -H "Content-Type: application/json" \
-  -d '{"prompt": "Once upon a time", "max_tokens": 150, "temperature": 0.85}'
+**1. Text Generation (`POST /generate`)**  
+Used for free-form autocompletion and story generation.
+```json
+// Request Body
+{
+  "prompt": "The little dog found a mysterious door and",
+  "max_tokens": 150,
+  "temperature": 0.85
+}
 ```
 
-### Instruction Following
-
-```bash
-curl -X POST http://localhost:8000/chat \
-  -H "Content-Type: application/json" \
-  -d '{"instruction": "Write a story about a brave cat", "max_tokens": 150}'
+**2. Instruction Following (`POST /chat`)**  
+Used for the Alpaca SFT conversational format.
+```json
+// Request Body
+{
+  "instruction": "Write a short story about a brave cat",
+  "input_text": "",
+  "max_tokens": 150,
+  "temperature": 0.85
+}
 ```
-
-### Python Client
-
-```python
-import requests
-
-# Story generation
-res = requests.post("http://localhost:8000/generate", json={
-    "prompt": "The little dog found a mysterious door and",
-    "max_tokens": 200,
-    "temperature": 0.85
-})
-print(res.json()["generated"])
-
-# Instruction mode
-res = requests.post("http://localhost:8000/chat", json={
-    "instruction": "Write a bedtime story about friendship",
-    "max_tokens": 200
-})
-print(res.json()["response"])
-```
-
----
-
-## Deployment
-
-### Frontend → Vercel (Free)
-
-```bash
-# 1. Push to GitHub
-git push origin main
-
-# 2. Go to vercel.com → New Project → Import repo
-# 3. Set Root Directory: frontend
-# 4. Add environment variable:
-#    NEXT_PUBLIC_API_URL = https://your-backend.railway.app
-# 5. Deploy
-```
-
-### Backend → Railway (Free Tier)
-
-```bash
-# 1. railway.app → New Project → Deploy from GitHub
-# 2. Set Root Directory: backend
-# 3. Add model files via Railway volumes or HuggingFace download
-# 4. Deploy
-```
-
-> **Note on model files:** The `.pt` files are ~115MB each and are gitignored.
-> For production deployment, host them on HuggingFace Hub or a storage bucket
-> and add a download step in your startup script.
-
----
-
-## Model Architecture
-
-```
-Input IDs
-    │
-    ▼
-Token Embedding (50257 × 384)
-    +
-Position Embedding (128 × 384)
-    │
-    ▼
-┌─────────────────────────────┐
-│  Transformer Block × 6      │
-│  ┌───────────────────────┐  │
-│  │ LayerNorm              │  │
-│  │ CausalSelfAttention   │  │  ← 6 heads, causal mask
-│  │   + residual          │  │
-│  │ LayerNorm              │  │
-│  │ FeedForward (4× MLP)  │  │  ← GELU activation
-│  │   + residual          │  │
-│  └───────────────────────┘  │
-└─────────────────────────────┘
-    │
-    ▼
-LayerNorm (final)
-    │
-    ▼
-LM Head (384 → 50257)         ← weight-tied with token embedding
-    │
-    ▼
-Next Token Logits
-```
-
-**Total: 29,974,656 parameters**
-
----
-
-## Generation Quality
-
-This is a 30M model — set expectations accordingly:
-
-| Task | Quality |
-|---|---|
-| Story continuation | ✅ Coherent short stories |
-| Creative writing prompts | ✅ Works well |
-| Simple instructions | ⚠️ Partially follows |
-| Factual Q&A | ❌ Not reliable |
-| Math / reasoning | ❌ Not capable |
-
-For best results: use story completion mode with temperature 0.8–0.9.
-
----
-
-## What I Learned Building This
-
-- Transformer internals: attention, residuals, layer norm placement
-- Why weight tying works (token embed ↔ LM head)
-- Chinchilla scaling: tokens needed = 20× parameters
-- Why pretraining loss ≠ generation quality
-- Gradient accumulation for simulating larger batches
-- SFT changes behavior, not capability
-
----
-
-## Author
-
-**Dhruv Kumar** — CSE @ NSUT Delhi (2023–2027)
-
-- National Winner, Smart India Hackathon 2025
-- GSoC 2026 Participant (HistoMoE / HEST-1k)
-- GitHub: [@kumardhruv88](https://github.com/kumardhruv88)
 
 ---
 
 <div align="center">
-
-Built with PyTorch · Served with FastAPI · Deployed on Vercel
-
-*Every weight in this model was initialized randomly and learned from data.*
-
+<i>Every weight in this model was initialized randomly and learned entirely from data.</i>
 </div>
